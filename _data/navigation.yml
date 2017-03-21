@@ -1,4 +1,4 @@
 ## main links
-#main:
-#  - title: "Post"
-#    url: /postcode/
+main:
+  - title: "Post"
+    url: https://io-inc.github.io/geeks.blog/

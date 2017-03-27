@@ -1,8 +1,4 @@
 ---
-layout: post
-categories: Study
-tags: [Kotlin, DI]
-author: Gudnam
 title: 코틀린에서 MVP 패턴 사용해보자!
 ---
 <div class="message"> 
@@ -12,7 +8,7 @@ MVC, MVVM, MVP 등의 View logic 패턴중에 MVP 를 선택한 이유는 View &
 # 개념 간단히 살펴보기
 
 ## MVP ?
-![mvp](/public/img/mvp_architecture.png)
+![mvp](https://gudnam.github.io/public/img/mvp_architecture.png)
 
 	VIEW
 		오직 화면 구성에 관련된 기능만 있다
@@ -36,7 +32,7 @@ MVC, MVVM, MVP 등의 View logic 패턴중에 MVP 를 선택한 이유는 View &
 
 ### Kotlin
 1. Install kotlin plugin
-![install_kotlin](/public/img/install_kotlin.png)
+![install_kotlin](https://gudnam.github.io/public/img/install_kotlin.png)
 
 2. 빌드 스크립트
 {% highlight js %}
@@ -175,4 +171,10 @@ class MainActivity : BaseActivity(), MainView {
 }
 {% endhighlight %}
 
-Activity(View)에서 특정 이벤트 발생 시 이를 Presenter 에게 알려준다. Presenter 에게 요청을 할 때 한가지 중요한 점은 Presenter 는 자신이 주체적으로 행동하는 객체가 아니라는 점이다. 예를 들어 Presenter.initialize() 는 Presenter 가 능동적으로 초기화 하는 것 같이 보인다. 하지만 Presenter 의 역할은 **View의 요청을 받고 요청에 대한 처리를 하는** 역할이기 때문에 View 에 종속되는게 바람직하다. 그렇다면 initialize 대신 메소드 이름은 onCreate, onCreateView, onResume 같은 Activity 에서 발생한 메소드명으로 하는게 좋겠다. 사소한 것이라 생각할 수 있지만 이런 생각의 차이가 객체간의 Coupling 으로 이어질 수 있겠다.
+## 마무리
+
+Activity(View)에서 특정 이벤트 발생 시 이를 Presenter 에게 알려준다. Presenter 에게 요청을 할 때 한가지 중요한 점은 Presenter 는 자신이 주체적으로 행동하는 객체가 아니라는 점이다.
+
+예를 들어 Presenter.initialize() 는 Presenter 가 능동적으로 초기화 하는 것 같이 보인다. 하지만 Presenter 의 역할은 **View의 요청을 받고 요청에 대한 처리를 하는** 역할이기 때문에 View 에 종속되는게 바람직하다.
+
+그렇다면 initialize 대신 메소드 이름은 onCreate, onCreateView, onResume 같은 Activity 에서 발생한 메소드명으로 하는게 좋겠다. 

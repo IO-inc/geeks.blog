@@ -1,5 +1,5 @@
 ---
-title: RxSwift 기본 익히기 (2) — 10분 짜리
+title: RxSwift 기본 익히기 (2) — 9.59초 짜리
 permalink: startrxswift2
 ---
 
@@ -83,7 +83,7 @@ let deferredSequence = Observable<String>.deferred {
   count += 1
   return Observable.create { observer in
     print("Emitting...")
-    observer.onNext("A")
+    observer.onNext("📱")
     return Disposables.create()
   }
 }
@@ -92,24 +92,24 @@ deferredSequence.subscribe(onNext: { print($0) }).disposed(by: disposeBag)
 // --- 출력 ---
 // 1 번째
 // Emitting...
-// A
+// 📱
 // 2 번째
 // Emitting...
-// A
+// 📱
 ```
 - ### From
 from은 자료구조화 된 데이터 타입들 Array, Dictionary따위 들을 Observable로 만들때 사용할 수 있습니다.
 ```
 let disposeBag = DisposeBag()
-let arrayType = ["A", "B", "C", "D"]
+let arrayType = ["📱", "⌚️", "💻", "🖥"]
 Observable.from(arrayType)
  .subscribe(onNext: { print($0) })
  .disposed(by: disposeBag)
 // --- 출력 ---
-// A
-// B️
-// C
-// D
+// 📱
+// ⌚️
+// 💻
+// 🖥
 ```
 - ### Of
 Of는 같은 타입의 여러개의 element들을 observable로 만들 수 있습니다.
@@ -153,33 +153,33 @@ Observable
 - ### Repeat
 생성한 Observable을 무기한 반복해서 방출합니다. take(_ count: Int) 메서드로 제한 할 수 있습니다.
 ```
-Observable.repeatElement("macbook 사줘")
+Observable.repeatElement("🖥 사줘")
  .subscribe(onNext: { print($0) })
  .disposed(by: disposeBag)
 // --- 출력 ---
-// macbook  사줘
-// macbook  사줘
-// macbook  사줘
+// 🖥 사줘
+// 🖥 사줘
+// 🖥 사줘
 ...
 ```
 - ### doOn
 doOn은 Observer가 구독하기 전에 핸들링 할 수 있습니다.
 ```
-Observable.of("A", "B️", "C", "D")
+Observable.of("📱", "⌚️", "💻", "🖥")
  .do(onNext: { print("Intercepted:", $0) },
      onError: { print("Intercepted error:", $0) },
      onCompleted: { print("Completed")  })
  .subscribe(onNext: { print($0) })
  .disposed(by: disposeBag)
 // --- 출력 ---
-// Intercepted: A
-//A
-//Intercepted: B
-//B
-//Intercepted: C
-//C
-//Intercepted: D
-//D
+// Intercepted: 📱
+//📱
+//Intercepted: ⌚️
+//⌚️
+//Intercepted: 💻
+//💻
+//Intercepted: 🖥
+//🖥
 //Completed
 ```
 - ### Empty, Never, Throw
@@ -195,16 +195,16 @@ Source Observable여러개를 하나의 Observable로 만듭니다.
 - ### StartWith
 Obervable이 보내는 데이터의 처음에 데이터를 추가합니다.
 ```
-Observable.of("A", "B", "C", "D")
+Observable.of("📱", "⌚️", "💻", "🖥")
  .startWith("startWith")
  .subscribe(onNext: { print($0) })
  .disposed(by: disposeBag)
 // --- 출력 --- 
 // startWith
-// A
-// B️
-// C
-// D
+// 📱
+// ⌚️
+// 💻
+// 🖥
 ```
 - ### Merge
 여러개의 Observable sequence를 하나로 만듭니다.
@@ -310,58 +310,58 @@ Source Observable로 부터 emit되는 item을 필터링 하거나 조건에 따
 - ### filter
 Filter는 Swift의 그것과 같이 Observable이 emit하는 item 을 필터링 해 subscriber에 보내기 위해 사용합니다.
 ```
-Observable.of("A", "B️", "C", "D")
-.filter { $0 == "C" }
+Observable.of("📱", "⌚️", "💻", "🖥")
+.filter { $0 == "🖥" }
 .subscribe(onNext: { print($0) })
 .disposed(by: disposeBag)
 // --- 출력 ---
-// C
+// 🖥
 ```
 - ### distinctUntilChanged
 이건 말이죠. Observable이 연속 같은 item 을 방출하면 무시합니다. subscriber는 연속해서 같은 item을 받지 않습니다.
 ```
-Observable.of("A", "B️", "B️", "C", "D", "C", "D", "D")
+Observable.of("📱", "⌚️", "⌚️", "💻", "📱", "💻", "🖥", "🖥")
   .distinctUntilChanged()
   .subscribe(onNext: { print($0) })
   .disposed(by: disposeBag)
 // --- 출력 ---
-//A
-//B️
-//C
-//A
-//B
-//C
+//📱
+//⌚️
+//💻
+//📱
+//💻
+//🖥
 ```
 - ### elementAt
 Observables는 Sequenecs 처럼 다룰 수 있습니다. 특정 순서에 나오는 item을 구독할 수 있습니다.
 ```
-Observable.of("A", "B️", "C", "D")
+Observable.of("📱", "⌚️", "💻", "🖥")
   .elementAt(3)
   .subscribe(onNext: { print($0) })
   .disposed(by: disposeBag)
 // --- 출력 ---
-// C
+// 💻
 ```
 - ### single
 Swift Sequence 의 .first와 같습니다. 대신 매개변수로 조건을 넣을 수 있습니다.
 ```
-Observable.of("A", "B️", "C", "D")
+Observable.of("📱", "⌚️", "💻", "🖥")
   .single()
   .subscribe { print($0) }
   .disposed(by: disposeBag)
 // --- 출력 ---
-//A
+//📱
 ```
 - ### take
 매개변수로 subscriber에게 넘겨줄 item의 개수를 정할 수 있습니다.
 ```
-Observable.of("A", "B️", "C", "D")
+Observable.of("📱", "⌚️", "💻", "🖥")
   .take(2)
   .subscribe(onNext: { print($0) })
   .disposed(by: disposeBag)
 // --- 출력 ---
-//A
-//B️
+//📱
+//⌚️
 takeLast
 takeWhile
 takeUntil
@@ -382,14 +382,13 @@ observeOn, 이나 subscribeOn메서드로 Thread를 지정할 수 있습니다.
 - OperationQueueScheduler
 
 위와 같은 Thread들이 있고 다음과 같이 사용할 수 있습니다.
-
 ```
-Observable.of("A", "B️", "C", "D")
+Observable.of("📱", "⌚️", "💻", "🖥")
   .observeOn(CurrentThreadScheduler.instance)
   .subscribe(onNext: { print($0) })
   .disposed(by: disposeBag)
 ```
 
 축하드려요. 이제 Rx시작하기를 끝내셨네요. 시간이 날때 마다 예제 코드나 설명을 수정 보완하도록 하겠습니다. 다음에는 RxCocoa에 대해서 다뤄보도록 하죠.
-여기까지 읽으셨으면 피드백 꼭 주세요.
+여기까지 읽으셨으면 피드백 꼭 주세요. ⚔️
 그럼 이만…

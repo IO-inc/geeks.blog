@@ -1,6 +1,6 @@
 ---
 title: RxSwift 기본 익히기 (1) — 10 분짜리
-permalink: startrxswift1
+permalink: rxswift_first
 ---
 
 ![main image](https://cdn-images-1.medium.com/max/2000/1*i8d0WlTwViNNn4xiOGdLHQ.jpeg)

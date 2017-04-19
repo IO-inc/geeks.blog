@@ -1,5 +1,5 @@
 ---
-title: title: RxSwift 기본 익히기 (2) — 10분 짜리
+title: RxSwift 기본 익히기 (2) — 10분 짜리
 permalink: startrxswift2
 ---
 

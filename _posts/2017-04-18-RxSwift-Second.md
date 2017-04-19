@@ -1,395 +1,316 @@
 ---
-title: title: RxSwift 기본 익히기 (2) — 9.59초 짜리
-permalink: startrxswift2
+title: RxSwift 기본 익히기 (1) — 10 분짜리
+permalink: rxswift_first
 ---
 
-![example](https://cdn-images-1.medium.com/max/2000/1*GFksbQsZ_t8Wqhk9Cq83og.png)
+![main image](https://cdn-images-1.medium.com/max/2000/1*i8d0WlTwViNNn4xiOGdLHQ.jpeg)
 
-##6. 고차함수 사용하기
 
-먼저 함수형 프로그래밍에 대해 잠깐 살펴볼까요? 그 유명한 밥아저씨가 말씀하시기를 Functional Programming은 대입문 없이 프로그래밍 하는것 이라고 했어요. 어떤 특징들 때문일까요?
-순수 함수
-f (x)라는 함수가 있습니다. f는 항상 입력된 인수에만 의존합니다. 함수 f는 달에서 인수 x를 넣고 함수 f(x)를 호출 하는것이나 지구에서 같은 인수 x를 넣고 f(x)를 호출하는 것이나 항상 같은 결과가 나옵니다. 같은 인수를 넣으면 언제나 같은 결과를 내는 함수를 순수함수라고 합니다. 지극히 수학적입니다. 상태에 의존적이지 않기 때문에 side effect가 없습니다.
-고차 함수
-함수형 프로그래밍에서는 함수도 값으로 취급합니다. 함수를 인수로 넘길 수도 있고 함수를 리턴할 수도 있습니니다.
+### Intro
+개발자라면 Rx에 대해서 한번쯤은 들어봤을 거에요. 나도 1주일 전까지는 그냥 들어만 봤을 뿐이에요. 공부를 해보고 실제 사용해 봤습니다. 그리고 그 내용을 공유합니다.
+
+
+##### Rx 장점은 이렇게 나열됩니다.
+
+### Benefits
+In short, using Rx will make your code:
+- Composable <- Because Rx is composition’s nickname
+- Reusable <- Because it’s composable
+- Declarative <- Because definitions are immutable and only data changes
+- Understandable and concise <- Raising the level of abstraction and removing transient states
+- Stable <- Because Rx code is thoroughly unit tested
+- Less stateful <- Because you are modeling applications as unidirectional data flows
+- Without leaks <- Because resource management is easy
+
+
+### 시작해볼까요?
+
+먼저 Reactive Programming은 어떤건가 한번 봅시다.
+
+> In computing, reactive programming is an asynchronous programming paradigm oriented around data streams and the propagation of change.
+This means that it should be possible to express static (e.g. arrays) or dynamic (e.g. event emitters) data streams with ease in the programming languages used, and that the underlying execution model will automatically propagate the changes through the data flow. — wikipedia
+
+> 리액티브 프로그래밍은 데이터 스트림과 변화의 증식에 기반한 비동기 프로그래밍 패러다임이다.
+
+> Reactive Extensions (aka ReactiveX, Rx) is an API for asynchronous programming with observable streams.
+
+> Rx는 Reactive programming을 위한 도구입니다.
+
+> ReactiveX is a combination of the best ideas from
+  the Observer pattern, the Iterator pattern, and functional programming. — http://reactivex.io/
+
+
+**이 글만 가지고는 먼소리인지 잘 모르겠어요. 자세히 하번 살펴봅시다.** 
+
+---
+**Swift Version 의 Rx 인 RxSwift 를 가지고 설명해 보도록 할게요.**
+
+# 1. Observables aka Sequences
+
+Sequence는 프로그래밍에서 기본중에 기본 아닙니까? Sequence는 순차적이고 반복적으로 각각의 element에 접근 가능하도록 디자인된 데이터 타입입니다. 쉽게 Sequence 는 list 와 같이 반복문을 사용할 수 있는 데이터 타입을 말합니다.
 
 ```
-func f(_ g: (() -> Void) ) -> (() -> Void) {
-  let h = g
-  return h
+let oneTwoThree = 1...3 
+for number in oneTwoThree {     
+  print(number) 
+} 
+// Prints "1" 
+// Prints "2" 
+// Prints "3"
+```
+
+RxSwift에서 Observables은 Sequences입니다. Arrays, Strings 와 같은 Sequences는 RxSwift에서 Observable이 됩니다. Swift Sequence Protocol을 따르는 모든 Object들의 Observable을 만들 수 있어요.
+
+
+#### 한번 만들어 봅시다.
+
+```
+let stringSequence = Observable.just("this is string yo")
+let oddSequence = Observable.from([1, 3, 5, 7, 9])
+let dictSequence = Observable.from([1:"Rx",2:"Swift"])
+```
+#### 이렇게 만든 Observables를 subscribe 할 수 있습니다.
+
+```
+/*
+subscribe(<#T##on: (Event<String>) -> Void##(Event<String>) -> Void#>)
+*/
+let subscription = stringSequence.subscribe { (event: Event<String>) in
+  print(event)
+}
+// -- print --
+// next(this is string observable)
+// completed
+```
+
+##### 다른 예
+
+
+```
+let subscription = oddSequence.subscribe { (event: Event<Int>) in
+  print(event)
+}
+// -- print --
+// next(1)
+// next(3)
+// next(5)
+// next(7)
+// next(9)
+// completed
+let subscription = dictSequence.subscribe { (event: Event<(key: Int, value: String)>) in
+  print(event)
+}
+// -- print --
+// next((2, "Swift"))
+// next((1, "Rx"))
+// completed
+```
+어떤가요? Sequence처럼 출력 되지 않나요? Observables는 0 혹은 그보다 많은 event를 발생시킬 수 있습니다. RxSwift에서 Event는 enum 타입이고 3가지 상태를 가지고 있습니다.
+
+```
+// Event의 정의 입니다. 3가지 상태를 가지고 있어요.
+enum Event<Element>  {
+    case next(Element)      // next element of a sequence
+    case error(Swift.Error) // sequence failed with error
+    case completed          // sequence terminated successfully
+}
+class Observable<Element> {
+    func subscribe(_ observer: Observer<Element>) -> Disposable
+}
+
+protocol ObserverType {
+    func on(_ event: Event<Element>)
 }
 ```
 
-이런 식의 코딩이 가능합니다. 위 함수에서 인자로 넘겨지는 함수 g 를 callback 함수라고 부릅니다. 함수 f 에 의해 불려지기 때문이죠. 아래 처럼 사용 될 수 있습니다.
+# 2. Disposing
+
+Observables의 사용이 끝나면 메모리를 해제해야 합니다. 그 때 사용할 수 있는것이 Dispose입니다. RxSwift에서는 DisposeBag을 사용하는데 DisposeBag instance의 deinit() 이 실행 될 때 모든 메모리를 해제합니다.
+
+이렇게요.
 
 ```
-let list = 1...100
-let result = list.reduce(0) { (r, element) -> Int in
-  return r + element
+let disposeBag = DisposeBag()
+let stringSequence = Observable.just("RxSwift Observable")
+let subscription = stringSequence.subscribe { (event) in
+  print(event)
 }
-print(result)
-// --- 출력 ---
-// 5050
+// subscription 을 disposeBag에 넣어 메모리를 해제합니다.
+subscription.addDisposableTo(disposeBag)
+// 빠르게 비워주고 싶을때는 disposeBag을 새로 만들면 됩니다.
+self.disposeBag = DisposeBag()
 ```
 
-함수형 프로그래밍에도 단점이 있습니다. 그 중하나는 상태가 없기때문에 변수 수정이 어려운 것입니다. Swift에서 타입 키워드로 let 만 사용한다고 생각하면 될것 같아요. 그래서 함수형 프로그래밍의 좋은 점을 추가하고 OOP 의 장점을 추가한 프로그래밍 언어들이 나오게 됐고 그중 하나가 Swift입니다.
-Swift와 같은 언어들을 Multi Paradigm Language라고 합니다.
-Swift Standard Library 에는 Sequences 를 다루는 고차함수들이 이미 구현 돼 있습니다. 그냥 사용하기만 하면 되죠.
-- Map
-- Reduce
-- Filter
-- FlatMap
-- Foreach
+직접 dispose()를 호출 할 수 있습니다. subscription.dispose() 이렇게요.
+하지만 직접 호출하는 것은 bad code smell 입니다. Thread가 다를 때 Observable을 사용하기도 전에 메모리를 비워주는 일이 발생할 수 있음.
 
-등이 있습니다.
-앞서서 첫번째 글에서 Observables 는 Sequence라고 했습니다. Rx는 비동기 이벤트를 마치 iterable 컬렉션처럼 간단하게 다루는 것입니다.
-우린 RxSwift에서 위와 같은 고차 함수들을 가지고 Observable이 emit한 이벤트를 subscriber가 받기 전에 Transformation 혹은 combination 할 수 있습니다.
+메모리를 해제 하는 다른 방법으로 Take Until 따위가 있어요.
 
-#### 시작해볼까요?
+```
+// 요런식으로 사용합니다.
+sequence
+    .takeUntil(self.rx.deallocated)
+    .subscribe {
+        print($0)
+    }
+```
 
----
+# 3. Observable(aka observable sequence)을 만들어 봅시다.
 
-## 7. Operators By Category
+처음에 우린
 
+```
+let stringSequence = Observable.just("this is string yo")
+let oddSequence = Observable.from([1, 3, 5, 7, 9])
+```
 
-_겁나 많은 Operators 하나씩 봅시다_
+이런 방법으로 just, from 등을 이용해 Observable을 만들었어요. just, from을 사용하지 않고 직접 Observable을 만들어 봅시다.
 
-#### 7.1 Creating Observables
+Observable.create 함수를 사용해 Observable Sequence 를 쉽게 만들 수 있습니다.
 
-7.1 Creating Observables
-- ### Create
-1편에서도 설명했지만 Observable을 처음 부터 만들 때 사용하는 Operator입니다.
 ```
 func myJust<E>(element: E) -> Observable<E> {
-  return Observable.create { observer in
-    observer.on(.next(element))
-    observer.on(.completed)
-    return Disposables.create()
-  }
+    return Observable.create { observer in
+        observer.on(.next(element))
+        observer.on(.completed)
+        return Disposables.create()
+    }
 }
-myJust(element: 0).subscribe(onNext: { n in
-  print(n)
-})
-//--- 출력 ---
-// 0
+
+myJust(element: 0)
+    .subscribe(onNext: { n in
+      print(n)
+    })
 ```
-- ### Defer
-defer는 observer가 subscribe할 때까지 기다리며 subscribe하면 그때 Observable을 생성합니다. defer(미루다) subscribe할 때까지 Observable 생성을 미룹니다.
+
+create 함수는 Swift 의 closure를 사용해 우리가 위에서 사용한 subscribe 메서드를 쉽게 구현할 수 있도록 합니다.
+
+# 4. Subjects
+
+Rx 에서 Subject는 Observable 과 Observer 둘 다 될 수 있는 특별한 형태입니다. Subject는 Observables을 subscribe(구독) 할 수 있고 다시 emit(방출)할 수 도 있습니다. 혹은 새로운 Observable을 emit 할 수 있습니다.
+그래서 이게 왜 필요할 까요?
+
+일단 RxSwift에는 4가지 타입의 Subject가 있습니다.
+
+- PublishSubject
+- BehaviorSubject
+- ReplaySubject
+- Variable
+
+### 4.1 PublishSubject
+
+일단 사용해 보죠.
+onNext() 함수로 새로운 값을 추가할 수 있습니다.
+
 ```
-let disposeBag = DisposeBag()
-var count = 1
-let deferredSequence = Observable<String>.deferred {
-  print("\(count) 번째")
-  count += 1
-  return Observable.create { observer in
-    print("Emitting...")
-    observer.onNext("A")
-    return Disposables.create()
-  }
+let bag = DisposeBag()
+var publishSubject = PublishSubject<String>()
+// Subject를 구독합니다.
+publishSubject.subscribe { (event) in
+  print(event)
 }
-deferredSequence.subscribe(onNext: { print($0) }).disposed(by: disposeBag)
-deferredSequence.subscribe(onNext: { print($0) }).disposed(by: disposeBag)
+// onNext로 값을 추가하면 event가 발생합니다.
+publishSubject.onNext("first value")
 // --- 출력 ---
-// 1 번째
-// Emitting...
-// A
-// 2 번째
-// Emitting...
-// A
+// next(first value)
 ```
-- ### From
-from은 자료구조화 된 데이터 타입들 Array, Dictionary따위 들을 Observable로 만들때 사용할 수 있습니다.
-```
-let disposeBag = DisposeBag()
-let arrayType = ["A", "B", "C", "D"]
-Observable.from(arrayType)
- .subscribe(onNext: { print($0) })
- .disposed(by: disposeBag)
-// --- 출력 ---
-// A
-// B️
-// C
-// D
-```
-- ### Of
-Of는 같은 타입의 여러개의 element들을 observable로 만들 수 있습니다.
-From 과 거의 비슷하지만 다른점이 있습니다. From은 데이터 타입과 자료구조들만 가능하고 Of는 같은 타입의 여러개를 Parameter로 받을 수 있어요.
-// func of(_ elements: E ...) // 구현이 이렇게 돼 있습니다.
-- ### Interval
-Integer를 정해진 time interval마다 emit합니다.
-- ### Just
-가장 간단하게 Observable을 만들 수 있습니다. 한개나 여러개의 객체들을 Observable로 만들 수 있습니다.
-```
-Observable.just(1).subscribe { print($0) }.disposed(by: disposeBag)
-// --- 출력 ---
-// next(1)
-// complete
-```
-- ### Range
-정해진 Range에 따른 Integer를 방출합니다.
-```
-let disposeBag = DisposeBag()
-Observable.range(start: 1, count: 3).subscribe { print($0) }.disposed(by: disposeBag)
-// --- 출력 ---
-// next(1)
-// next(2)
-// next(3)
-// complete
-```
-- ### Generate
-generate는 parameter로 C 타입 for 문이 들어갈 수 있어요.
-```
-Observable
-.generate(initialState: 0, condition: {$0 < 3}, iterate: {$0 + 1})
-.subscribe(onNext: { print($0) })
-.disposed(by: disposeBag)
-// --- 출력 ---
-// 0
-// 1
-// 2
-// C type for loop 
-// for ( int i = 0; i< 3; i++) {}
-```
-- ### Repeat
-생성한 Observable을 무기한 반복해서 방출합니다. take(_ count: Int) 메서드로 제한 할 수 있습니다.
-```
-Observable.repeatElement("macbook 사줘")
- .subscribe(onNext: { print($0) })
- .disposed(by: disposeBag)
-// --- 출력 ---
-// macbook  사줘
-// macbook  사줘
-// macbook  사줘
-...
-```
-- ### doOn
-doOn은 Observer가 구독하기 전에 핸들링 할 수 있습니다.
-```
-Observable.of("A", "B️", "C", "D")
- .do(onNext: { print("Intercepted:", $0) },
-     onError: { print("Intercepted error:", $0) },
-     onCompleted: { print("Completed")  })
- .subscribe(onNext: { print($0) })
- .disposed(by: disposeBag)
-// --- 출력 ---
-// Intercepted: A
-//A
-//Intercepted: B
-//B
-//Intercepted: C
-//C
-//Intercepted: D
-//D
-//Completed
-```
-- ### Empty, Never, Throw
-Empty는 Observable을 emit(방출)하지 않고 종료바로 종료하는 Observable을 만듭니다.
-Never로 생성한 Observable은 emit하지도 않고 terminate(종료)하지도 않습니다.
-Throw로 생성한 Observable은 emit하지 않고 error와 함께 종료합니다.
+onNext로 두번째 값을 추가합니다.
 
---- 
-
-### 7.2 Combination Operators
-
-Source Observable여러개를 하나의 Observable로 만듭니다.
-- ### StartWith
-Obervable이 보내는 데이터의 처음에 데이터를 추가합니다.
 ```
-Observable.of("A", "B", "C", "D")
- .startWith("startWith")
- .subscribe(onNext: { print($0) })
- .disposed(by: disposeBag)
-// --- 출력 --- 
-// startWith
-// A
-// B️
-// C
-// D
-```
-- ### Merge
-여러개의 Observable sequence를 하나로 만듭니다.
-```
-let subject1 = PublishSubject<String>()
-let subject2 = PublishSubject<String>()
-Observable.of(subject1, subject2)
-  .merge()
-  .subscribe(onNext: { print($0) })
-  .disposed(by: disposeBag)
-subject1.onNext("1")
-subject1.onNext("2")
-subject2.onNext("A")
-subject2.onNext("B")
-subject2.onNext("3")
+publishSubject.onNext("second value")
 // --- 출력 ---
-// 1
-// 2
-// A
-// B
-// 3
+// next(first value)
+// next(second value)
 ```
-- ### Zip
-최대 8개의 타입 까지 하나의 Observable Sequence의 element로 만들어 emit합니다.
+
+onCompleted() 이벤트를 종료시킵니다.
 ```
-let stringSubject = PublishSubject<String>()
-let intSubject = PublishSubject<Int>()
-Observable
-.zip(stringSubject, intSubject) { stringElement, intElement in
-  "\(stringElement) \(intElement)"
+publishSubject.onCompleted()
+// --- 출력 ---
+// next(first value)
+// next(second value)
+// completed
+```
+
+마지막으로 예제를 한번 보시죠.
+
+```
+let bag = DisposeBag()
+var publishSubject = PublishSubject<String>()
+publishSubject.onNext("very first value")
+publishSubject.subscribe { (event) in
+  print(event)
 }
-.subscribe(onNext: { print($0) })
-.disposed(by: disposeBag)
-stringSubject.onNext("A")
-stringSubject.onNext("B")
-intSubject.onNext(1)
-intSubject.onNext(2)
-stringSubject.onNext("AB")
-intSubject.onNext(3)
+publishSubject.onNext("first value")
+publishSubject.onNext("second value")
+publishSubject.onError(NSError(domain: "", code: 1, userInfo: nil))
+publishSubject.onNext("very last value")
+publishSubject.onCompleted()
 // --- 출력 ---
-// A 1
-// B 2
-// AB 3
+// next(first value)
+// next(second value)
+// error(Error Domain= Code=1 "(null)")
 ```
-그 외에도 combineLatest, switchLatest 등이 있습니다.
+
+PublishSubject는 subscribe 전의 이벤트는 emit하지 않습니다. subscribe한 후의 이벤트만을 emit합니다. 그리고 에러 이벤트가 발생하면 그 후의 이벤트는 emit 하지 않습니다.
+
+
+### 4.2 BehaviorSubject
+
+BehaviorSubject는 PublishSubject와 거의 같지만 BehaviorSubject는 반드시 값으로 초기화를 해줘야 합니다. 즉 BehaviorSubject는 Observer에게 subscribe하기전 마지막 이벤트 혹은 초기 값을 emit합니다.
+
+이렇게요.
+
+```
+var behaviorSubject = BehaviorSubject(value: "initial value")
+behaviorSubject.subscribe { (event) in
+  print(event)
+}
+behaviorSubject.onNext("first value")
+// --- 출력 ---
+// next(initial value)
+// next(first value)
+// completed
+```
+
+### 4.3 ReplaySubject
+
+ReplaySubject는 미리 정해진 사이즈 만큼 가장 최근의 이벤트를 새로운 Subscriber에게 전달 합니다.
+
+```
+let bag = DisposeBag()
+var replaySubject = ReplaySubject<String>.create(bufferSize: 1)
+replaySubject.onNext("before subscribe first value")
+replaySubject.onNext("before subscribe second value")
+replaySubject.subscribe { (event) in
+  print(event)
+}
+replaySubject.onNext("first value")
+replaySubject.onCompleted()
+// --- 출력 ---
+// next(before subscribe second value)
+// next(first value)
+// completed
+```
+
+버퍼 사이즈가 1이기 때문에 가장 최근의 이벤트인 “before subscribe second value”를 새로운 구독자에게 전달합니다.
+
+### 4.4 Variable
+
+Variable 은 PublishSubject의 Wrapper 함수입니다. PublishSubject처럼 작동하며 더 익숙한 이름으로 사용하기 위해 만들어 졌습니다. 저도 Variable 많이 사용합니다.
+
+# 5. Marble Diagram
+
+Marble Diagram 은 Observable Sequence의 transformation을 시각화 해 보여줍니다. 시각화된 transformation은 이해를 돕죠. 한번 보시죠.
+
+- [Web-app](http://rxmarbles.com) 
+- [iOS-App](https://itunes.apple.com/com/app/rxmarbles/id1087272442)
+- [Android](https://goo.gl/b5YD8K) 
+
 ---
+> 쓰다보니 길어졌네요. 아무래도 다음이 필요할 것 같아요. 가능한 빠르게 다음 내용을 정리해 볼게요. 그럼 이만.
 
+> 공유하거나 하트 누르거나 뭐 그냥 아무 것도 하지 않거나. 하지만 여기 까지 읽었으면 Rx 개념은 잡으셨죠?
 
-### 7.3 Transforming Operators
-emit되는 Observable를 어떤 변형을 거친 후에 subscriber에게 보내도록 합니다.
-- ### Map
-emit된 Observable을 어떤 함수를 적용시켜 매핑한 후에 Observer에게 전달 합니다.
-```
-Observable.of(1, 2, 3)
-.map { $0 * $0 }
-.subscribe(onNext: { print($0) })
-.disposed(by: disposeBag)
-// --- 출력 ---
-// 1
-// 4
-// 9
-```
-- ### FlatMap
-Observable안에 또 다른 Observable이 있는 경우에 새로운 Observable 만들어야 합니다. 그때 사용할 수 있습니다. Observable Sequence 들로 만들어진 Observable Sequence를 하나의 Observable Sequence로 만들어 emit합니다.
-```
-let disposeBag = DisposeBag()
-let sequence1  = Observable<Int>.of(1,2)
-let sequence2  = Observable<Int>.of(1,2)
-let sequenceOfSequences = Observable.of(sequence1,sequence2)
-sequenceOfSequences
-.flatMap{ return $0 }
-.subscribe(onNext:{
-  print($0)
-}).disposed(by: disposeBag)
-// --- 출력 ---
-// 1
-// 2
-// 1
-// 2
-// flatMap을 빼고 그냥 subscribe하면 아래와 같이 Observable이 출력됩니다.
-// --- 출력 ---
-// RxSwift.ObservableSequence<Swift.Array<Swift.Int>>
-// RxSwift.ObservableSequence<Swift.Array<Swift.Int>>
-```
-- ### Scan
-Swift의 reduce와 비슷합니다.
-정해 진 초기값(seed value)에 클로저를 적용시켜 하나의 Observable로 만듭니다.
-```
-Observable.of(10, 100, 1000)
- .scan(0) { aggregateValue, newValue in
- aggregateValue + newValue
-}
-.subscribe(onNext: { print($0) })
-.disposed(by: disposeBag)
-// --- 출력 ---
-// 10
-// 110
-// 1110
-```
+[Why Rx](https://github.com/ReactiveX/RxSwift/blob/master/Documentation/Why.md)
 
-### 7.4 Filtering and Conditional Operators
-Source Observable로 부터 emit되는 item을 필터링 하거나 조건에 따라 emit하도록 합니다. 아래와 같은 Operator들이 존재합니다. 이거 예제를 추가해야하는데…
-- ### filter
-Filter는 Swift의 그것과 같이 Observable이 emit하는 item 을 필터링 해 subscriber에 보내기 위해 사용합니다.
-```
-Observable.of("A", "B️", "C", "D")
-.filter { $0 == "C" }
-.subscribe(onNext: { print($0) })
-.disposed(by: disposeBag)
-// --- 출력 ---
-// C
-```
-- ### distinctUntilChanged
-이건 말이죠. Observable이 연속 같은 item 을 방출하면 무시합니다. subscriber는 연속해서 같은 item을 받지 않습니다.
-```
-Observable.of("A", "B️", "B️", "C", "D", "C", "D", "D")
-  .distinctUntilChanged()
-  .subscribe(onNext: { print($0) })
-  .disposed(by: disposeBag)
-// --- 출력 ---
-//A
-//B️
-//C
-//A
-//B
-//C
-```
-- ### elementAt
-Observables는 Sequenecs 처럼 다룰 수 있습니다. 특정 순서에 나오는 item을 구독할 수 있습니다.
-```
-Observable.of("A", "B️", "C", "D")
-  .elementAt(3)
-  .subscribe(onNext: { print($0) })
-  .disposed(by: disposeBag)
-// --- 출력 ---
-// C
-```
-- ### single
-Swift Sequence 의 .first와 같습니다. 대신 매개변수로 조건을 넣을 수 있습니다.
-```
-Observable.of("A", "B️", "C", "D")
-  .single()
-  .subscribe { print($0) }
-  .disposed(by: disposeBag)
-// --- 출력 ---
-//A
-```
-- ### take
-매개변수로 subscriber에게 넘겨줄 item의 개수를 정할 수 있습니다.
-```
-Observable.of("A", "B️", "C", "D")
-  .take(2)
-  .subscribe(onNext: { print($0) })
-  .disposed(by: disposeBag)
-// --- 출력 ---
-//A
-//B️
-takeLast
-takeWhile
-takeUntil
-skip
-skipWhile
-skipWhileWithIndex
-skipUntil
-```
-
-## 8. Schedulers
-Operator들은 subscription이 생성된 스레드에서 돌아갑니다. 그리고 RxSwift를 사용할 때 특정한 스레드를 강제할 수 있습니다. operation-queue나 dispatch-queue에 익숙하시다면 껌입니다.
-observeOn, 이나 subscribeOn메서드로 Thread를 지정할 수 있습니다.
-
-- MainScheduler
-- CurrentThreadScheduler
-- SerialDispatchQueueScheduler
-- ConcurrentDispatchQueueScheduler
-- OperationQueueScheduler
-
-위와 같은 Thread들이 있고 다음과 같이 사용할 수 있습니다.
-
-```
-Observable.of("A", "B️", "C", "D")
-  .observeOn(CurrentThreadScheduler.instance)
-  .subscribe(onNext: { print($0) })
-  .disposed(by: disposeBag)
-```
-
-축하드려요. 이제 Rx시작하기를 끝내셨네요. 시간이 날때 마다 예제 코드나 설명을 수정 보완하도록 하겠습니다. 다음에는 RxCocoa에 대해서 다뤄보도록 하죠.
-여기까지 읽으셨으면 피드백 꼭 주세요.
-그럼 이만…

@@ -16,7 +16,7 @@ Storyboard는 iOS 애플리케이션을 만들 때 UI를 만들고 관리하기 
  - 하나의 Storyboard가 하나의 화면만 가지고 있으므로 화면의 복잡도가 현저히 줄어듭니다.
  - 화면의 개수가 하나이므로 Storyboard를 로딩하는 속도도 빨라집니다.
 
-![alt text](https://io-inc.github.io/geeks.blog/assets/img/storyboars.jpg "각각의 뷰 마다 Storyboard 분리")
+![alt text](https://io-inc.github.io/geeks.blog/assets/img/storyboards.jpg "각각의 뷰 마다 Storyboard 분리")
 
 코드리뷰는 여전히 어려운 일이지만 그 부분을 제외하면 Storyboard 사용에서 감수해야 할 많은 단점을 제거할 수 있습니다.
 
@@ -84,9 +84,11 @@ class UsersViewController: UIViewController, UITableViewDelegate {
 Storyboard의 장단점 및 Storyboard를 분리하는 자세한 방법은 아래에서 확인할 수 있습니다.
 
 ### Storyboard의 장단점
+
  - http://roadfiresoftware.com/2015/03/the-pros-and-cons-of-using-storyboards/
 
 ### Storyboard분리 방법
+
  - https://medium.cobeisfresh.com/a-case-for-using-storyboards-on-ios-3bbe69efbdf4
  - https://medium.com/ios-os-x-development/xcode-a-better-way-to-deal-with-storyboards-8b6a8b504c06
 
